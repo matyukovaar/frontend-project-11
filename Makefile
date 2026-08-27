@@ -3,3 +3,6 @@ install:
 
 lint:
 	npx eslint .
+
+run-dev:
+	npm run dev
