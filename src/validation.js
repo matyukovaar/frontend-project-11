@@ -1,11 +1,21 @@
 import * as yup from 'yup'
 
+yup.setLocale({
+  mixed: {
+    required: 'validation.requiredField',
+  },
+  string: {
+    url: 'validation.invalidUrl',         
+  },
+})
+
+
 const schema = yup.object({
   url: yup
     .string()
-    .required('Не должно быть пустым')
-    .url('Ссылка должна быть валидным URL')
-    .test('no duplicates', 'Повторов быть не должно', function (value) {
+    .required()
+    .url()
+    .test('no duplicates', 'validation.duplicate', function (value) {
       const { feeds } = this.options.context
       return !feeds.includes(value)
     })
