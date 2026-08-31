@@ -7,6 +7,13 @@ export default {
         },
         appName: 'RSS агрегатор',
         submitButtonText: 'Добавить',
-        labelText: 'Ссылка RSS'
+        labelText: 'Ссылка RSS',
+        feedsName: 'Фиды', 
+        postsName: 'Посты',
+        networkError: 'Сетевая ошибка',
+        notRSS: 'Не обнаружен RSS. Неправильный формат',
+            
+        
+
     }
 }

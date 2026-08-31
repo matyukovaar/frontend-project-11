@@ -1,18 +1,67 @@
 import './style.css'
 import { proxy } from 'valtio/vanilla'
+import { watch } from 'valtio/vanilla/utils'
 import { validateURL } from './validation.js'
 import {initView} from './view.js'
 import i18next from 'i18next'
 import resourses from './locales/ru.js'
+import axios from 'axios'
+
+
+const fetchData = async (url) => {
+  const response = await axios.get('https://allorigins.hexlet.app/get', {
+    params: {
+      url: url,
+      disableCache: true
+    }
+  })
+  return response.data.contents
+}
+
+const parseRSS = (xmlString) => {
+  const parser = new DOMParser()
+  const rawDOM = parser.parseFromString(xmlString, 'application/xml')
+  
+  const errorNode = rawDOM.querySelector('parsererror')
+  if (errorNode) {
+    throw new Error('NOT_RSS')
+  }
+
+  const channel = rawDOM.querySelector('channel')
+  if (!channel) throw new Error('NOT_RSS')
+  
+  const feed = {
+    title: channel.querySelector('title').textContent, 
+    description: channel.querySelector('description').textContent,
+    link: channel.querySelector('link').textContent
+  }
+  
+  const itemsNodes = channel.querySelectorAll('item')
+  const items = Array.from(itemsNodes).map((post) => {
+    return {
+      title: post.querySelector('title').textContent,
+      link: post.querySelector('link').textContent, 
+    }
+  })
+
+  return { feed, items }
+}
+
 
 
 const state = proxy({
   inputValue: '',
   error: '',
-  status: 'filling', //invalid
+  formStatus: 'filling', //invalid
   feeds: [],
-  lang: 'ru'
+  posts: [],
+  loadingStatus: 'idle', //loading, success, failed
+  lang: 'ru',
+  feedsIDCounter: 0,
+  postsIDCounter: 0,
+  dataStatus: 'empty' //RSS, notRSS
 })
+
 
 const i18n = i18next.createInstance()
 i18n.init({
@@ -28,40 +77,71 @@ i18n.init({
   const resultDiv = document.getElementById('results-list')
   const input = document.getElementById('rss-url')
   const errorDiv = document.getElementById('error-message')
-  const elemets = {
+  const elements = {
     container,
     form,
     resultDiv,
     input,
     errorDiv
   }
-  initView(state, elemets, i18n)
+  /*watch(() => {
+    initView(state, elements, i18n)
+  })*/
+
+  initView(state, elements, i18n)
+
   form.addEventListener('submit', (e) => {
     e.preventDefault()
-  
+
     const formData = new FormData(form)
     const url = formData.get('url').trim()
-  
+
     state.inputValue = url
-    validateURL(state.inputValue, state).then((result) => {
+  
+    validateURL(url, state).then((result) => {
       if (!result.isValid) {
         state.error = result.error
-        state.status = 'invalid'
-        initView(state, elemets,i18n)
+        state.formStatus = 'invalid'
         form.reset()
-        return
+        throw new Error('VALIDATION_ERR')
       }
-
-      state.feeds.push(state.inputValue)
       state.inputValue = ''
       state.error = ''
-      state.status = 'filling'
+      state.formStatus = 'filling'
       form.reset()
-      initView(state, elemets, i18n)
 
+      state.loadingStatus = 'loading'
+    
+      return result.url 
+      }).then((validUrl) => {
+        return fetchData(validUrl)
+      }).then((xmlString) => {
+      const parsedData = parseRSS(xmlString)
+    
+      const feedId = state.feedsIDCounter++
+      state.feeds.push({ ...parsedData.feed, id: feedId })
+    
+      parsedData.items.forEach((item) => {
+        const postId = state.postsIDCounter++
+        state.posts.push({ ...item, id: postId, feedId })
+      })
+    
+      state.loadingStatus = 'success'
+      }).catch((error) => {
+      if (error.message === 'VALIDATION_ERR') return
+    
+      state.loadingStatus = 'failed'
+      if (error.message === 'NETWORK_ERR') {
+        state.error = 'networkError'
+      } else if (error.message === 'NOT_RSS') {
+        state.error = 'notRSS'
+      } else {
+        state.error = 'unknownError'
+      }
+    })
   })
 
-  })
+
   input.addEventListener('input', (event) => {
     state.inputValue = event.target.value
     if (state.error) {
@@ -69,5 +149,8 @@ i18n.init({
     }
   })
 })
+
+
+
 
 
