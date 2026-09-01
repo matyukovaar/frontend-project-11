@@ -7,18 +7,39 @@ import i18next from 'i18next'
 import resourses from './locales/ru.js'
 import axios from 'axios'
 
+const state = proxy({
+  inputValue: '',
+  error: '',
+  formStatus: 'filling', //invalid
+  feeds: [],
+  posts: [],
+  loadingStatus: 'idle', //loading, success, failed
+  lang: 'ru',
+  feedsIDCounter: 0,
+  postsIDCounter: 0,
+  isChecking: false
+  
+})
 
-const fetchData = async (url) => {
-  const response = await axios.get('https://allorigins.hexlet.app/get', {
+const fetchData = (url) => {
+  return axios.get('https://allorigins.hexlet.app/get', {
     params: {
       url: url,
       disableCache: true
     }
   })
-  return response.data.contents
+   .then(response => {
+    if (response.data.status.http_code  !== 200) {
+      throw new Error('NETWORK_ERR')
+    }
+    return {
+      contents: response.data.contents,
+      originalUrl: url
+    }
+  })
 }
 
-const parseRSS = (xmlString) => {
+const parseRSS = (xmlString, originalUrl) => {
   const parser = new DOMParser()
   const rawDOM = parser.parseFromString(xmlString, 'application/xml')
   
@@ -30,12 +51,14 @@ const parseRSS = (xmlString) => {
   const channel = rawDOM.querySelector('channel')
   if (!channel) throw new Error('NOT_RSS')
   
+    
   const feed = {
     title: channel.querySelector('title').textContent, 
     description: channel.querySelector('description').textContent,
-    link: channel.querySelector('link').textContent
+    link: originalUrl
   }
-  
+
+
   const itemsNodes = channel.querySelectorAll('item')
   const items = Array.from(itemsNodes).map((post) => {
     return {
@@ -47,21 +70,43 @@ const parseRSS = (xmlString) => {
   return { feed, items }
 }
 
+const isUniqueFeed = (newFeed) => {
+  return !state.feeds.some(feed => feed.link === newFeed.link)
+}
 
+const isUniquePost = (newPost) => {
+  return !state.posts.some(post => post.link === newPost.link)
+}
 
-const state = proxy({
-  inputValue: '',
-  error: '',
-  formStatus: 'filling', //invalid
-  feeds: [],
-  posts: [],
-  loadingStatus: 'idle', //loading, success, failed
-  lang: 'ru',
-  feedsIDCounter: 0,
-  postsIDCounter: 0,
-  dataStatus: 'empty' //RSS, notRSS
-})
+const interval = 5000
+const checkForUpdates = () => {
+  if(state.feeds.length === 0) {
+    setTimeout(checkForUpdates, interval)
+    return
+  }
+  
+  const promises = state.feeds.map((feed) => {
+    return fetchData(feed.link) 
+    .then(({ contents, originalUrl }) => {
+      const parsedData = parseRSS(contents, originalUrl)
+      
+      parsedData.items.forEach((item) => {
+        const isNew = isUniquePost(item)
+        if (isNew) {
+          const postId = state.postsIDCounter++
+          state.posts.push({ ...item, id: postId, feedId: feed.id })
+        }
+      })
+    })
+    .catch((error) => {
+      console.warn(`Ошибка обновления ленты: ${feed.link}`, error.message)
+    })
+  })
 
+  Promise.all(promises).finally(() => {
+    setTimeout(checkForUpdates, interval)
+  })
+}
 
 const i18n = i18next.createInstance()
 i18n.init({
@@ -84,9 +129,9 @@ i18n.init({
     input,
     errorDiv
   }
-  /*watch(() => {
+  watch(() => {
     initView(state, elements, i18n)
-  })*/
+  })
 
   initView(state, elements, i18n)
 
@@ -113,10 +158,13 @@ i18n.init({
       state.loadingStatus = 'loading'
     
       return result.url 
-      }).then((validUrl) => {
+    }).then((validUrl) => {
         return fetchData(validUrl)
-      }).then((xmlString) => {
-      const parsedData = parseRSS(xmlString)
+    }).then(({contents, originalUrl}) => {
+      const parsedData = parseRSS(contents, originalUrl)
+      if (!isUniqueFeed(parsedData.feed)) {
+        throw new Error('NOT_UNIQUE_FEED')
+      }
     
       const feedId = state.feedsIDCounter++
       state.feeds.push({ ...parsedData.feed, id: feedId })
@@ -127,16 +175,23 @@ i18n.init({
       })
     
       state.loadingStatus = 'success'
-      }).catch((error) => {
+      if(!state.isChecking) {
+        checkForUpdates()
+        state.isChecking = true
+      }
+      initView(state,elements, i18n)
+    }).catch((error) => {
       if (error.message === 'VALIDATION_ERR') return
     
       state.loadingStatus = 'failed'
-      if (error.message === 'NETWORK_ERR') {
+      if (error.message === 'NETWORK_ERR' || error.code === 'ERR_NETWORK') {
         state.error = 'networkError'
       } else if (error.message === 'NOT_RSS') {
         state.error = 'notRSS'
+      } else if (error.message === 'NOT_UNIQUE_FEED') {
+        state.error = 'notUniqueFeed'
       } else {
-        state.error = 'unknownError'
+        state.error = 'unknownError' 
       }
     })
   })

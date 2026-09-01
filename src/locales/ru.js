@@ -12,6 +12,8 @@ export default {
         postsName: 'Посты',
         networkError: 'Сетевая ошибка',
         notRSS: 'Не обнаружен RSS. Неправильный формат',
+        unknownError: 'Какая-то ошибка',
+        notUniqueFeed: 'Такой фид уже существует'
             
         
 
