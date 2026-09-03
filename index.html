@@ -6,28 +6,61 @@
   <title>RSS агрегатор</title>
   <link rel="stylesheet" href="./src/style.css">
 </head>
-<body>
-  <div class="container">
-    <h1></h1>
-      <form id="rss-form" class="rss-form" novalidate>
-      <div class="form-group">
-        <label for="rss-url"></label>
-        <input
-          type="text"
-          id="rss-url"
-          name="url"
-          placeholder="https://lorem-rss.hexlet.app/feed"
-          required
-        />
-        <p class="error-message" id="error-message"></p>
-      </div>
+<body class="min-h-screen bg-[#f8fafc] flex flex-col">
+    <div class="w-full bg-slate-800 text-white flex justify-center">
+    <div class="w-full max-w-4xl p-10 flex flex-col justify-center items-start">
       
-      <button type="submit" class="btn-add">
-      </button>
-    </form>
-    
-    <div id="results-list"></div>
+      <h1 class="text-4xl font-medium mb-2">RSS агрегатор</h1>
+      <p class="text-xl font-medium mb-6">Начните читать RSS сегодня! Это легко, это красиво.</p>
+      
+      <form id="rss-form" class="rss-form w-full" novalidate>
+        <div class="form-group w-full">
+          <label for="rss-url" class="block mb-2 font-light">Ссылка RSS</label>
+          
+          <div class="flex flex-col sm:flex-row gap-3 w-full">
+            <input
+              type="text"
+              id="rss-url"
+              name="url"
+              placeholder="cсылка RSS"
+              required
+              class="flex-grow bg-white p-3 bg-slate-700 text-black border border-slate-600 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-slate-400"
+            />
+            <button type="submit" class="btn-add px-6 py-3 font-semibold rounded bg-blue-600 hover:bg-blue-700 transition-colors inline-flex items-center justify-center shrink-0">
+              Добавить
+            </button>
+          </div>
+          
+          <p class="text-sm text-slate-400 mt-2">Пример: https://lorem-rss.hexlet.app/feed</p>
+          <p class="error-message text-red-400 text-sm mt-1" id="error-message"></p>
+        </div>
+      </form>
+
+    </div>
   </div>
+    
+  <div class="w-full flex-grow flex justify-center">
+    <div id="results-list" class="w-full max-w-7xl mx-auto p-10 text-slate-900">
+    </div>
+  </div>
+
+  <dialog id="modal" class="p-0 w-full max-w-lg border border-slate-200">
+    <div data-test="modal-body" class="bg-white p-6 flex flex-col gap-4">
+      <h3 id="modal-title" class="text-2xl font-bold text-slate-800 break-words leading-snug"></h3>
+      <p id="modal-description" class="text-slate-600 text-xl leading-relaxed break-words whitespace-pre-wrap border-t-2 border-b-2 border-slate-200"></p>
+    
+      <div class="flex flex-col sm:flex-row justify-end items-center gap-3 mt-2 pt-4">
+      <a id="modal-link" href="#"  class="px-6 py-3 font-semibold rounded bg-blue-600 hover:bg-blue-700 transition-colors inline-flex items-center justify-center shrink-0 text-white">
+        Читать полностью
+      </a>
+      <button id="modal-close" type="button" class="px-6 py-3 font-semibold rounded bg-slate-600 transition-colors inline-flex items-center justify-center shrink-0 text-white">
+        Закрыть
+      </button>
+      
+    </div>
+  </div>
+</dialog>
+  
 
   <script type="module" src="./src/main.js"></script>
 </body>

@@ -1,73 +1,135 @@
 import { watch } from 'valtio/vanilla/utils'
 
 export function initView(state, elements, i18n) {
-    const { container, form, resultDiv, input, errorDiv } = elements
+  const { container, form, resultDiv, input, errorDiv } = elements
 
-    const label = form.querySelector('label')
-    label.textContent = i18n.t('labelText')
+  const label = form.querySelector('label')
+  label.textContent = i18n.t('labelText')
 
-    const h1 = container.querySelector('h1')
-    h1.textContent = i18n.t('appName')
-    
-    const submitBtn = form.querySelector('.btn-add')
-    submitBtn.textContent = i18n.t('submitButtonText')
-    
-    const feedsContainer = document.createElement('div')
-    feedsContainer.classList.add('feeds-section')
-    const feedsName = document.createElement('h2')
-    feedsName.textContent = i18n.t('feedsName')
-    const feedsList = document.createElement('ul')
-    feedsList.classList.add('feeds')
-    feedsContainer.append(feedsName, feedsList)
+  const h1 = container.querySelector('h1')
+  h1.textContent = i18n.t('appName')
+  
+  const submitBtn = form.querySelector('.btn-add')
+  submitBtn.textContent = i18n.t('submitButtonText')
+  
+  resultDiv.classList.add('grid', 'grid-cols-1', 'md:grid-cols-3', 'gap-8', 'items-start')
 
-    const postsContainer = document.createElement('div')
-    postsContainer.classList.add('posts-section')
-    const postsName = document.createElement('h2')
-    postsName.textContent = i18n.t('postsName')
-    const postsList = document.createElement('ul')
-    postsList.classList.add('posts')
-    postsContainer.append(postsName, postsList)
+  const postsContainer = document.createElement('div')
+  postsContainer.classList.add('md:col-span-2', 'bg-white', 'rounded', 'border', 'border-slate-200', 'p-6', 'shadow-sm')
+  
+  const postsName = document.createElement('h2')
+  postsName.classList.add('text-2xl', 'font-bold', 'mb-6', 'text-slate-800')
+  postsName.textContent = i18n.t('postsName')
+  
+  const postsList = document.createElement('ul')
+  postsList.classList.add('space-y-4')
+  postsContainer.append(postsName, postsList)
 
-    resultDiv.innerHTML = ''
-    resultDiv.append(feedsContainer, postsContainer)
+  const feedsContainer = document.createElement('div')
+  feedsContainer.classList.add('bg-white', 'rounded', 'border', 'border-slate-200', 'p-6', 'shadow-sm')
+  
+  const feedsName = document.createElement('h2')
+  feedsName.classList.add('text-2xl', 'font-bold', 'mb-4', 'text-slate-800')
+  feedsName.textContent = i18n.t('feedsName')
+  
+  const feedsList = document.createElement('ul')
+  feedsList.classList.add('space-y-4')
+  feedsContainer.append(feedsName, feedsList)
 
-    watch((get) => {
-        const errorKey = get(state).error
-        const currentFeeds = get(state).feeds
-        const currentPosts = get(state).posts
+  resultDiv.innerHTML = ''
+  resultDiv.append(postsContainer, feedsContainer)
 
-        if (errorKey) {
-            errorDiv.textContent = i18n.t(errorKey)
-            //input.classList.add('is-invalid');
-        } else {
-            errorDiv.textContent = ''
-            //input.classList.remove('is-invalid');
-        }
+  watch((get) => {
+    const errorKey = get(state).error
+    const currentFeeds = get(state).feeds
+    const currentPosts = get(state).posts
+    const loadingStatus = get(state).loadingStatus
 
-        feedsList.innerHTML = ''
-        currentFeeds.forEach((feed) => {
-            const li = document.createElement('li')
+    errorDiv.className = 'error-message text-sm mt-1'
+    input.classList.remove('border-red-500', 'focus:ring-red-500', 'border-green-500', 'focus:ring-green-500')
 
-            const title = document.createElement('h3')
-            title.textContent = feed.title
+    if (errorKey) {
+      errorDiv.textContent = i18n.t(errorKey)
+      errorDiv.classList.add('text-red-400')
+      input.classList.add('border-red-500', 'focus:ring-red-500')
+    } else if (loadingStatus === 'success') {
+      errorDiv.textContent = i18n.t('success')
+      errorDiv.classList.add('text-green-400')
+      input.classList.add('border-green-500', 'focus:ring-green-500')
+      form.reset() 
+    } else {
+      errorDiv.textContent = ''
+    }
 
-            const descr = document.createElement('p')
-            descr.textContent = feed.description
+    feedsList.innerHTML = ''
+    currentFeeds.forEach((feed) => {
+      const li = document.createElement('li')
+      li.classList.add('border-b', 'border-slate-100', 'pb-4', 'last:border-0', 'feed-item')
 
-            li.append(title, descr)
-            feedsList.append(li)
-        })
+      const title = document.createElement('h3')
+      title.classList.add('font-bold', 'text-slate-800', 'text-sm', 'mb-1', 'leading-snug')
+      title.textContent = feed.title
 
-        postsList.innerHTML = ''
-        currentPosts.forEach((post) => {
-            const li = document.createElement('li')
-            li.classList.add('list-group-item')
+      const descr = document.createElement('p')
+      descr.classList.add('text-xs', 'text-slate-400', 'font-normal')
+      descr.textContent = feed.description
 
-            const a = document.createElement('a')
-            a.setAttribute('href', post.link)
-            a.textContent = post.title
-            li.append(a)
-            postsList.append(li)
-        })
+      li.append(title, descr)
+      feedsList.append(li)
     })
+
+    postsList.innerHTML = ''
+    currentPosts.forEach((post) => {
+      const li = document.createElement('li')
+      li.classList.add('flex', 'justify-between', 'items-center', 'py-3', 'border-b', 'border-slate-100', 'last:border-0', 'posts-item')
+      li.setAttribute('data-seen', String(post.hasSeen))
+      
+      const wrapper = document.createElement('div')
+      wrapper.classList.add('pr-4', 'flex-1')
+
+      const a = document.createElement('a')
+      a.setAttribute('href', post.link)
+      a.setAttribute('target', '_blank')
+      a.setAttribute('rel', 'noopener noreferrer')
+      a.classList.add('block', 'break-all', 'line-clamp-2', 'hover:underline')
+      
+      if (!post.hasSeen) {
+        a.classList.add('font-bold', 'text-blue-600')
+      } else {
+        a.classList.add('font-normal', 'text-slate-600')
+      }
+      a.textContent = post.title
+      wrapper.append(a)
+
+      const button = document.createElement('button')
+      button.setAttribute('type', 'button')
+      button.classList.add('preview-btn', 'px-3', 'py-1.5', 'text-xs', 'font-medium', 'text-blue-600', 'border', 'border-blue-600', 'rounded', 'hover:bg-blue-50', 'transition-colors', 'shrink-0')
+      button.textContent = i18n.t('previewButton') 
+      button.dataset.postId = post.id
+
+      li.append(wrapper, button)
+      postsList.append(li)
+    })
+
+    const activePost = get(state).activeModalPost
+    const modal = document.getElementById('modal')
+
+    if (modal) {
+      if (activePost) {
+        document.getElementById('modal-title').textContent = activePost.title
+        document.getElementById('modal-description').textContent = activePost.description
+        document.getElementById('modal-link').href = activePost.link
+        
+        if (!modal.open) {
+          modal.showModal()
+        }
+        document.body.style.overflow = 'hidden'
+      } else {
+        if (modal.open) {
+          modal.close()
+        }
+        document.body.style.overflow = ''
+      }
+    }
+  })
 }

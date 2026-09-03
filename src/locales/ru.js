@@ -11,9 +11,11 @@ export default {
         feedsName: 'Фиды', 
         postsName: 'Посты',
         networkError: 'Сетевая ошибка',
-        notRSS: 'Не обнаружен RSS. Неправильный формат',
+        notRSS: 'Ресурс не содержит валидный RSS',
+        success: 'RSS успешно загружен',
         unknownError: 'Какая-то ошибка',
-        notUniqueFeed: 'Такой фид уже существует'
+        notUniqueFeed: 'Такой фид уже существует',
+        previewButton: 'Просмотр'
             
         
 

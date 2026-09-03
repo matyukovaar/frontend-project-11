@@ -17,7 +17,8 @@ const state = proxy({
   lang: 'ru',
   feedsIDCounter: 0,
   postsIDCounter: 0,
-  isChecking: false
+  isChecking: false,
+  activeModalPost: null,
   
 })
 
@@ -63,7 +64,9 @@ const parseRSS = (xmlString, originalUrl) => {
   const items = Array.from(itemsNodes).map((post) => {
     return {
       title: post.querySelector('title').textContent,
-      link: post.querySelector('link').textContent, 
+      link: post.querySelector('link').textContent,
+      description: post.querySelector('description').textContent,
+      hasSeen: false 
     }
   })
 
@@ -117,7 +120,7 @@ i18n.init({
   }
 })
 .then(() => {
-  const container = document.querySelector('.container')
+  const container = document.body
   const form = document.getElementById('rss-form')
   const resultDiv = document.getElementById('results-list')
   const input = document.getElementById('rss-url')
@@ -129,9 +132,6 @@ i18n.init({
     input,
     errorDiv
   }
-  watch(() => {
-    initView(state, elements, i18n)
-  })
 
   initView(state, elements, i18n)
 
@@ -203,6 +203,42 @@ i18n.init({
       state.error = ''
     }
   })
+
+  resultDiv.addEventListener('click', (e) => {
+    const previewBtn = e.target.closest('.preview-btn')
+    if (!previewBtn) return
+
+    const postId = Number(previewBtn.dataset.postId)
+    const post = state.posts.find(p => p.id === postId)
+
+    if (post) {
+      post.hasSeen = true 
+      state.activeModalPost = post
+    }
+  })
+
+  const closeModal = () => {
+    state.activeModalPost = null
+  }
+
+  const modal = document.getElementById('modal')
+  const modalClose = document.getElementById('modal-close')
+
+  modalClose.addEventListener('click', closeModal)
+
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      closeModal()
+    }
+  })
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && state.activeModalPost !== null) {
+    closeModal()
+  }
+  })
+
+
 })
 
 
