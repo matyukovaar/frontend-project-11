@@ -2,7 +2,7 @@ export default {
     translation: {
         validation: {
             requiredField: 'Не должно быть пустым',
-            duplicate: 'Повторов быть не должно',
+            duplicate: 'RSS уже существует',
             invalidUrl: 'Ссылка должна быть валидным URL', 
         },
         appName: 'RSS агрегатор',
@@ -10,11 +10,11 @@ export default {
         labelText: 'Ссылка RSS',
         feedsName: 'Фиды', 
         postsName: 'Посты',
-        networkError: 'Сетевая ошибка',
+        networkError: 'Ошибка сети',
         notRSS: 'Ресурс не содержит валидный RSS',
         success: 'RSS успешно загружен',
-        unknownError: 'Какая-то ошибка',
-        notUniqueFeed: 'Такой фид уже существует',
+        unknownError: 'Ошибка сети',
+        notUniqueFeed: 'RSS уже существует',
         previewButton: 'Просмотр'
             
         
