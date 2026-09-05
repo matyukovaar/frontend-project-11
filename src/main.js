@@ -7,6 +7,7 @@ import i18next from 'i18next'
 import resourses from './locales/ru.js'
 import axios from 'axios'
 
+export default () => {
 const state = proxy({
   inputValue: '',
   error: '',
@@ -241,7 +242,7 @@ document.addEventListener('keydown', (e) => {
 
 })
 
-
+}
 
 
 
