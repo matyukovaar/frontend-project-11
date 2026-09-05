@@ -58,7 +58,6 @@ export function initView(state, elements, i18n) {
     } else if (loadingStatus === 'success') {
       feedbackEl.textContent = i18n.t('success')
       feedbackEl.classList.add('text-green-400')
-      form.reset() 
     } else {
       feedbackEl.textContent = ''
     }
