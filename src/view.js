@@ -1,7 +1,7 @@
 import { watch } from 'valtio/vanilla/utils'
 
 export function initView(state, elements, i18n) {
-  const { container, form, resultDiv, input, errorDiv } = elements
+  const { container, form, resultDiv, input, feedbackEl } = elements
 
   const label = form.querySelector('label')
   label.textContent = i18n.t('labelText')
@@ -45,20 +45,20 @@ export function initView(state, elements, i18n) {
     const currentPosts = get(state).posts
     const loadingStatus = get(state).loadingStatus
 
-    errorDiv.className = 'error-message text-sm mt-1'
-    input.classList.remove('border-red-500', 'focus:ring-red-500', 'border-green-500', 'focus:ring-green-500')
+    feedbackEl.className = 'error-message text-sm mt-1'
 
+    if(state.loadingStatus === 'loading') {
+      submitBtn.disabled = true
+    }
     if (errorKey) {
-      errorDiv.textContent = i18n.t(errorKey)
-      errorDiv.classList.add('text-red-400')
-      input.classList.add('border-red-500', 'focus:ring-red-500')
+      feedbackEl.textContent = i18n.t(errorKey)
+      feedbackEl.classList.add('text-red-400')
     } else if (loadingStatus === 'success') {
-      errorDiv.textContent = i18n.t('success')
-      errorDiv.classList.add('text-green-400')
-      input.classList.add('border-green-500', 'focus:ring-green-500')
+      feedbackEl.textContent = i18n.t('success')
+      feedbackEl.classList.add('text-green-400')
       form.reset() 
     } else {
-      errorDiv.textContent = ''
+      feedbackEl.textContent = ''
     }
 
     feedsList.innerHTML = ''

@@ -124,13 +124,13 @@ i18n.init({
   const form = document.getElementById('rss-form')
   const resultDiv = document.getElementById('results-list')
   const input = document.getElementById('rss-url')
-  const errorDiv = document.getElementById('error-message')
+  const feedbackEl = document.getElementById('feedback')
   const elements = {
     container,
     form,
     resultDiv,
     input,
-    errorDiv
+    feedbackEl
   }
 
   initView(state, elements, i18n)
