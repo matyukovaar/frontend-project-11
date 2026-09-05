@@ -1,13 +1,12 @@
 import './style.css'
 import { proxy } from 'valtio/vanilla'
-import { watch } from 'valtio/vanilla/utils'
 import { validateURL } from './validation.js'
 import {initView} from './view.js'
 import i18next from 'i18next'
 import resourses from './locales/ru.js'
 import axios from 'axios'
 
-export default () => {
+export function app(){
 const state = proxy({
   inputValue: '',
   error: '',
