@@ -49,6 +49,8 @@ export function initView(state, elements, i18n) {
 
     if(state.loadingStatus === 'loading') {
       submitBtn.disabled = true
+    } else {
+      submitBtn.disabled = false
     }
     if (errorKey) {
       feedbackEl.textContent = i18n.t(errorKey)
@@ -82,16 +84,17 @@ export function initView(state, elements, i18n) {
     currentPosts.forEach((post) => {
       const li = document.createElement('li')
       li.classList.add('flex', 'justify-between', 'items-center', 'py-3', 'border-b', 'border-slate-100', 'last:border-0', 'posts-item')
-      li.setAttribute('data-seen', String(post.hasSeen))
+
       
       const wrapper = document.createElement('div')
       wrapper.classList.add('pr-4', 'flex-1')
 
       const a = document.createElement('a')
       a.setAttribute('href', post.link)
-      a.setAttribute('target', '_blank')
       a.setAttribute('rel', 'noopener noreferrer')
       a.classList.add('block', 'break-all', 'line-clamp-2', 'hover:underline')
+      a.setAttribute('data-seen', String(post.hasSeen))
+
       
       if (!post.hasSeen) {
         a.classList.add('font-bold', 'text-blue-600')
