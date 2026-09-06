@@ -93,6 +93,7 @@ export function initView(state, elements, i18n) {
       a.setAttribute('rel', 'noopener noreferrer')
       a.classList.add('block', 'break-all', 'line-clamp-2', 'hover:underline')
       a.setAttribute('data-seen', String(post.hasSeen))
+      a.setAttribute('role', 'link')
 
       
       if (!post.hasSeen) {
